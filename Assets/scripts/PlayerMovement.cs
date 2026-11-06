@@ -1,5 +1,3 @@
-
-
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -14,10 +12,13 @@ public class PlayerMovement : MonoBehaviour
 
     private CharacterController controller;
     private Vector3 velocity;
+    private Stamina stamina;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+
+        stamina = GetComponent<Stamina>();
     }
 
     void Update()
@@ -39,14 +40,21 @@ public class PlayerMovement : MonoBehaviour
         Vector3 move = transform.right * input.x +
                        transform.forward * input.y;
 
-        // Sprint
-        bool sprinting = Keyboard.current != null &&
-                         Keyboard.current.leftShiftKey.isPressed;
+        // Sprints
+        bool wantsToSprint = Keyboard.current != null &&
+                             Keyboard.current.leftShiftKey.isPressed &&
+                             input.magnitude > 0.1f;
+
+        bool sprinting = wantsToSprint &&
+                         (stamina == null || stamina.CurrentStamina > 0f);
+
+        if (stamina != null)
+        {
+            stamina.SetSprinting(sprinting);
+        }
 
         float speed = sprinting ? sprintSpeed : moveSpeed;
-
         controller.Move(move * speed * Time.deltaTime);
-
         // Ground check
         if (controller.isGrounded && velocity.y < 0)
         {
